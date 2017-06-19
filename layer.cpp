@@ -1,14 +1,14 @@
-#include "neuron__.h"
+#include "layer.h"
 #include "random_num.h"
 
-Layer::Layer(int n, Layer* prev, Layer_type t, unsigned int step_size, unsigned int el_width, unsigned int el_height, unsigned char num_of_masks, size_t input_height, size_t input_width){
+Layer::Layer(int n, Layer* prev, Layer_type t){
     prev_layer = prev;
     layer_size = n;
 
     for(int i = 0; i  < n; i++) {
         neurons.push_back(Neuron());
     }
-    Set_Layer_Type(t,step_size, el_width, el_height, num_of_masks, input_height, input_width);
+    //Set_Layer_Type(t,step_size, el_width, el_height, num_of_masks, input_height, input_width);
 }
 
 void Layer::Set_Layer_Type(Layer_type t, unsigned int step_size, unsigned int el_width, unsigned int el_height, unsigned char num_of_masks, size_t input_height, size_t input_width){

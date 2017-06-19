@@ -10,9 +10,15 @@ CONFIG -= app_bundle
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    neuron__.cpp
+    neuron.cpp \
+    layer.cpp \
+    connection.cpp \
+    neuralnet.cpp
 
 HEADERS += \
     convolutionnn.h \
+    random_num.h \
     neuron.h \
-    random_num.h
+    layer.h \
+    connection.h \
+    neuralnet.h
