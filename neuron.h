@@ -10,6 +10,7 @@ public:
     Neuron(){ connections.clear(); out_value = 0;}
     inline void Add_Connection( unsigned int n, float weight ){ connections.push_back(Connection(n,weight)); }
     inline float Get_value() const { return out_value;}
+    inline void Set_value(const float);
     inline std::vector<Connection>* Get_Connections() { return &connections;}
 };
 
