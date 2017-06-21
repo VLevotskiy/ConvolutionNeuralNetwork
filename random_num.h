@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 #ifndef RANDOM_NUM_H
 #define RANDOM_NUM_H
 #include <math.h>

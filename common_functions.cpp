@@ -7,7 +7,7 @@
 
 void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 
-void convolution(float* input,const size_t input_width,const size_t input_height, float* mask, size_t el_width, size_t el_height){
+void convolution(float* input,const uint16_t input_width,const uint16_t input_height, float* mask, size_t el_width, size_t el_height){
 
     float out[input_height * input_width];
     memset(out, 0, sizeof(int) * input_width*input_height);
@@ -34,16 +34,16 @@ void convolution(float* input,const size_t input_width,const size_t input_height
         }
     }
 
-    for (int i = 0; i <input_height * input_width; i++){
+    for (uint16_t i = 0; i <input_height * input_width; i++){
         if (out[i] <0) out[i] = 0;
     }
 
-    for(int i =0; i < 5;i++){
+    /*for(int i =0; i < 5;i++){
         for(int j =0; j < 5; j++){
             std::cout << out[i * input_height + j] <<" " ;
         }
         std::cout << std::endl;
-    }
+    }*/
 
     pooling(out,input_width,input_height,2,2);
 }
@@ -80,7 +80,6 @@ void pooling(float* input, const size_t width,const size_t height,const unsigned
 int8_t Parser(std::string& input,const std::string* possible_values_list, uint8_t num_of_possible) {
     int8_t command_num = -1;
     for (int i = 0; i < num_of_possible; i++){
-        //std::cout << commands_list[i] << std::endl;
         size_t first_word_ptr = input.find(possible_values_list[i]);
 
         if (first_word_ptr != std::string::npos) {
@@ -91,6 +90,19 @@ int8_t Parser(std::string& input,const std::string* possible_values_list, uint8_
         }
     }
     return command_num;
+}
+
+std::vector<std::string>& Get_words(std::string& str, std::vector<std::string>& arr,std::string delim){
+    size_t prev = 0;
+    size_t next;
+    size_t delta = delim.length();
+
+    while( ( next = str.find( delim, prev ) ) != std::string::npos ){
+      arr.push_back( str.substr( prev, next-prev ) );
+      prev = next + delta;
+    }
+    arr.push_back( str.substr( prev ) );
+    return arr;
 }
 
 #endif // CONVOLUTIONNN_H

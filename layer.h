@@ -5,6 +5,7 @@
 #include <string>
 #include <stdint.h>
 #include <math.h>
+#include <memory>
 
 //Функции активации
 float SIGMOID(float S){
@@ -20,41 +21,47 @@ float ReLU(float S) {
     else return S;
 }
 
-float SoftMax(float){
-    return 0;
+float Linear(float S) {
+    return S;
 }
 
-enum Layer_type{FullConnected=1,Convolution,Pooling};
+float SoftMax(float S){
+    return S;
+}
+
+enum Layer_type{FullConnected=1, Convolution=2, Pooling=3};
 const int NUM_OF_LAYERS_TYPES = 3;
-const int NUM_OF_ACTIVATION_FUNCS = 3;
+const int NUM_OF_ACTIVATION_FUNCS = 4;
 const std::string list_of_layers_types[NUM_OF_LAYERS_TYPES] = {"FullConnected", "Convolution", "Pooling"};
-const std::string list_of_activation_funcs[NUM_OF_ACTIVATION_FUNCS] = {"Sigmoid", "ReLU", "SoftMax"};
+const std::string list_of_activation_funcs[NUM_OF_ACTIVATION_FUNCS] = {"Sigmoid", "ReLU", "SoftMax", "Linear"};
 
 //Класс слоя. Хранит информацию о слое сети
 class Layer {
-private:
+protected:
     std::vector<Neuron> neurons;
     unsigned int layer_size;
-    Layer* prev_layer;
+    std::shared_ptr<Layer>  prev_layer;
     Layer_type type;
     float (*activation_func)(float);
 public:
-    Layer(int n, Layer* prev, std::string &Activation_function);
+    Layer(int n, std::shared_ptr<Layer>& prev, std::string &Activation_function);
     unsigned int Size() const;// { return layer_size;}
-    std::vector<Neuron>& Get_neurons() const;
-    Layer* Get_Prev() const;
+    std::vector<Neuron>* Get_neurons();
+    std::shared_ptr<Layer> Get_Prev() const;
     Layer_type Get_type() const;
-    virtual void Calculate = 0;
+    virtual void Calculate();
 };
 
 class FullConnected_Layer : public Layer{
 public:
-    FullConnected_Layer(int n, Layer* prev, std::string &Activation_function);
+    FullConnected_Layer(int n, std::shared_ptr<Layer> prev, std::string &Activation_function);
     void Calculate();
 };
 
 class Convolution_Layer : public Layer {
 private:
+    uint16_t height;
+    uint16_t width;
     /*unsigned char num_of_masks;
     uint16_t structural_width;
     uint16_t structural_height;
@@ -62,7 +69,9 @@ private:
 
     void convolution(float* input,const size_t input_width,const size_t input_height, float* mask, size_t el_width, size_t el_height);
 public:
-    Convolution_Layer(int n, Layer* prev, std::string& Activation_function, uint8_t el_width, uint8_t el_height, uint8_t num_of_masks);
+    Convolution_Layer(std::shared_ptr<Layer> prev,std::string& Activation_function,\
+                      uint16_t input_height,uint16_t input_width,\
+                      uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
     void Calculate();
 };
 
@@ -74,7 +83,7 @@ class Pooling_Layer : public Layer {
 
     void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 public:
-    Pooling_Layer(int n, Layer* prev,std::string& Activation_function, uint16_t input_width, uint16_t input_height, uint8_t step_size, uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
+    Pooling_Layer(std::shared_ptr<Layer> prev,std::string& Activation_function, uint16_t input_width, uint16_t input_height, uint8_t step_size, uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
     void Calculate();
 };
 

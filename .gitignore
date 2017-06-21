@@ -2,3 +2,4 @@
 *.autosave
 neuron__.h
 neuron__.cpp
+convolutionnn.h

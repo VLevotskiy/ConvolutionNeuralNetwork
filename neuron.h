@@ -1,6 +1,7 @@
 #ifndef NEURON_H
 #define NEURON_H
 #include <vector>
+#include "connection.h"
 
 class Neuron {
 private:
