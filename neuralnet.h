@@ -15,9 +15,8 @@ private:
     double training_speed;
     double error_coef;
 public:
-    NeuralNet(uint8_t num_of_layers_,std::string& types,std::vector<uint16_t>& layers_sizes);
     NeuralNet(std::string* names, uint16_t num_of_layers, uint16_t input_layer_size);
-    Layer* forward_propognition(std::vector<float>&);
+    std::shared_ptr<Layer>* forward_propognition(std::vector<float>&);
     void back_propognition(std::vector<float>&);
     void training(std::string& path);
 

@@ -1,5 +1,6 @@
 #include "layer.h"
 #include "comm_funcs.h"
+#include <fstream>
 
 Layer::Layer(unsigned int n, std::shared_ptr<Layer>& prev, std::string& Activation_function, Layer_type type_){
     if (prev != 0)
@@ -62,18 +63,23 @@ FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> 
 }
 
 void FullConnected_Layer::Calculate(){
-    if (prev_layer) return;
+    if (!prev_layer) return;
+    std::fstream out_f("full_connected_test.log");
     for (size_t i = 0; i < layer_size-1; i++) {
         float tmp = 0;
         std::vector<Connection> *wgths_i = neurons[i].Get_connections();
         std::vector<Neuron> *prevNeurons = prev_layer->Get_neurons();
+        out_f << i << std::endl;
+        if (wgths_i->size() != prevNeurons->size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
         for (size_t j = 0; j < prev_layer->Size(); j++) {
-            if (wgths_i->size() != prevNeurons->size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
+            out_f << j << "\t" << wgths_i->at(j).Get_Weight() <<"\t" << prevNeurons->at(j).Get_value() << std::endl;
             tmp += wgths_i->at(j).Get_Weight() * prevNeurons->at(j).Get_value();
         }
         float out = activation_func(tmp);
         neurons.at(i).Set_value(out);
     }
+    out_f << "____________________________________________________________________________________________" << std::endl;
+    out_f.close();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +165,14 @@ void Pooling_Layer::Calculate() {
 Input_Layer::Input_Layer(unsigned int layer_size_) :Layer() {
     type = Input;
     layer_size = layer_size_;
-    for(int i = 0; i  < layer_size; i++) {
-        neurons.emplace_back(0);
+    Create_neurons();
+}
+
+void Input_Layer::Fill_layer(std::vector<float>& data) {
+    if (layer_size <= 0) throw std::runtime_error("Input_layer::Fill_layer. Layer is empty");
+    if (layer_size < data.size()) throw std::runtime_error("Input_layer::Fill_layer. Input_vector large then layer_size");
+
+    for (int i = 0; i < data.size();i++) {
+        neurons[i].Set_value(data[i]);
     }
 }

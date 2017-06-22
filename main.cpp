@@ -11,12 +11,14 @@ std::string layers[] = {"Layer_type = FullConnected num_of_neurons = 841 activat
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    try {
     NeuralNet new_net(layers, 3,841);
+
+    std::vector<float> inp;
+    for (int i =0; i < 841; i++){
+        inp.push_back(1);
     }
-    catch (std::runtime_error& re) {
-        std::cout << re.what();
-    }
+
+    new_net.forward_propognition(inp);
 
     std::cout << "CREATED!" << std::endl;
 
