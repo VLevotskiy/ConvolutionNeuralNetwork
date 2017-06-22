@@ -62,17 +62,18 @@ FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> 
 }
 
 void FullConnected_Layer::Calculate(){
-    /*if (prev_layer == nullptr) return;
+    if (prev_layer) return;
     for (size_t i = 0; i < layer_size-1; i++) {
         float tmp = 0;
-        float* wgths_i = neurons[i].Weights();
-        const Neuron* prevNeurons = prev_layer->GetNeurons();
+        std::vector<Connection> *wgths_i = neurons[i].Get_connections();
+        std::vector<Neuron> *prevNeurons = prev_layer->Get_neurons();
         for (size_t j = 0; j < prev_layer->Size(); j++) {
-            tmp += wgths_i[j] * prevNeurons[j].Out_value();
+            if (wgths_i->size() != prevNeurons->size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
+            tmp += wgths_i->at(j).Get_Weight() * prevNeurons->at(j).Get_value();
         }
         float out = activation_func(tmp);
-        neurons[i].SetValue(out);
-    }*/
+        neurons.at(i).Set_value(out);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

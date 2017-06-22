@@ -13,7 +13,7 @@ public:
     void Add_Connection( unsigned int n, float weight ){ connections.push_back(Connection(n,weight)); }
     float Get_value() const { return out_value;}
     void Set_value(const float value) { out_value = value;}
-    std::vector<Connection>* Get_Connections() { return &connections;}
+    std::vector<Connection>* Get_connections() { return &connections;}
 };
 
 #endif // NEURON_H
