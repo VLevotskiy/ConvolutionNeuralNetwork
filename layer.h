@@ -22,6 +22,8 @@ protected:
     std::shared_ptr<Layer>  prev_layer;
     Layer_type type;
     float (*activation_func)(float);
+
+    void Create_neurons();
 public:
     Layer() {
         neurons.clear();
@@ -29,7 +31,7 @@ public:
         activation_func = nullptr;
     }
 
-    Layer(unsigned int n, std::shared_ptr<Layer>& prev, std::string &Activation_function);
+    Layer(unsigned int n, std::shared_ptr<Layer>& prev, std::string &Activation_function, Layer_type type_);
     unsigned int Size() const;// { return layer_size;}
     std::vector<Neuron>* Get_neurons();
     std::shared_ptr<Layer> Get_Prev() const;
@@ -47,6 +49,7 @@ class Convolution_Layer : public Layer {
 private:
     uint16_t height;
     uint16_t width;
+    uint16_t mask_size;
     /*unsigned char num_of_masks;
     uint16_t structural_width;
     uint16_t structural_height;
@@ -62,6 +65,7 @@ public:
 
 class Pooling_Layer : public Layer {
     unsigned char num_of_masks;
+    uint16_t mask_size;
     uint16_t structural_width;
     uint16_t structural_height;
     uint8_t step_size;

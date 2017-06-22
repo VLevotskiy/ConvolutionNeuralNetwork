@@ -31,7 +31,7 @@ NeuralNet::NeuralNet(uint8_t num_of_layers_,std::string& types,std::vector<uint1
 // Layer_type = Pooling num_of_neurons = <n> activation_func = <func_name> el_with = <n> el_height = <n> number_of_masks = <n> step_size = <n>
 NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_layer_size) {
     layers.push_back(std::make_shared<Layer>(Input_Layer(input_layer_size)));
-    const int NUM_OF_PARAMS = 7;
+    const int NUM_OF_PARAMS = 9;
     const std::string parametrs_list[] {"Layer_type", "num_of_neurons", "activation_func", "el_width", "el_height", "number_of_masks", "step_size", "img_height", "img_width"};
     for (int j = 0; j < num_of_Layers; j++) {
         std::vector<std::string> words;
@@ -69,7 +69,7 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
                     LT = Pooling;
                     break;
                 }
-                default: throw std::string("Unknown layer type " + words[i]); break;
+                default: throw std::runtime_error("Unknown layer type " + words[i]); break;
                 }
                 break;
             }
@@ -77,7 +77,7 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
                 try {
                     num_of_neurons = std::stoi(words[++i]);
                 } catch(...) {
-                    throw std::string("Wrong format of num_of_neurons " + words[i]);
+                    throw std::runtime_error("Wrong format of num_of_neurons " + words[i]);
                 }
                 break;
             }
@@ -138,7 +138,7 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
             default: throw std::string("Unknown parameter " + words[i]); break;
             }
         }
-        std::shared_ptr<Layer> prev =layers[j-1];
+        auto prev = layers.at(j);
 
         switch((int)LT){
         case FullConnected:
