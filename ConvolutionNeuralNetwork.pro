@@ -14,11 +14,11 @@ SOURCES += main.cpp \
     layer.cpp \
     connection.cpp \
     neuralnet.cpp \
-    common_functions.cpp
+    comm_funcs.cpp
 
 HEADERS += \
-    random_num.h \
     neuron.h \
     layer.h \
     connection.h \
-    neuralnet.h
+    neuralnet.h \
+    comm_funcs.h

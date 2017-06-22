@@ -29,7 +29,8 @@ NeuralNet::NeuralNet(uint8_t num_of_layers_,std::string& types,std::vector<uint1
 // Layer_type = <Type> num_of_neurons = <n> activation_func = <func_name> ...
 // Layer_type = Convolution num_of_neurons = <n> activation_func = <func_name> img_height = <n> img_width = <n> el_with = <n> el_height = <n> number_of_masks = <n>
 // Layer_type = Pooling num_of_neurons = <n> activation_func = <func_name> el_with = <n> el_height = <n> number_of_masks = <n> step_size = <n>
-NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers) {
+NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_layer_size) {
+    layers.push_back(std::make_shared<Layer>(Input_Layer(input_layer_size)));
     const int NUM_OF_PARAMS = 7;
     const std::string parametrs_list[] {"Layer_type", "num_of_neurons", "activation_func", "el_width", "el_height", "number_of_masks", "step_size", "img_height", "img_width"};
     for (int j = 0; j < num_of_Layers; j++) {
@@ -137,19 +138,17 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers) {
             default: throw std::string("Unknown parameter " + words[i]); break;
             }
         }
-        auto prev = std::make_shared<Layer>(nullptr);
-        if (j != 0) {
-            prev = std::make_shared<Layer>(layers[j-1]);
-        }
+        std::shared_ptr<Layer> prev =layers[j-1];
+
         switch((int)LT){
         case FullConnected:
-            layers.push_back(std::make_shared<Layer>(new FullConnected_Layer(num_of_neurons,prev,Activ_func)));
+            layers.push_back(std::make_shared<Layer>(FullConnected_Layer(num_of_neurons,prev,Activ_func)));
             break;
         case Convolution:
-            layers.push_back(std::make_shared<Layer>(new Convolution_Layer(prev,Activ_func, img_width,img_height, el_width,el_height,num_of_masks)));
+            layers.push_back(std::make_shared<Layer>(Convolution_Layer(prev,Activ_func, img_width,img_height, el_width,el_height,num_of_masks)));
             break;
         case Pooling:
-            layers.push_back(std::make_shared<Layer>(new Pooling_Layer(prev,Activ_func, img_width,img_height, step_size,el_width,el_height,num_of_masks)));
+            layers.push_back(std::make_shared<Layer>(Pooling_Layer(prev,Activ_func, img_width,img_height, step_size,el_width,el_height,num_of_masks)));
             break;
         }
     }

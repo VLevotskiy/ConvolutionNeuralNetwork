@@ -1,9 +1,10 @@
 #include "layer.h"
-#include "random_num.h"
-#include "common_functions.cpp"
+#include "comm_funcs.h"
 
-Layer::Layer(int n, std::shared_ptr<Layer>& prev,std::string& Activation_function){
-    prev_layer = prev;
+Layer::Layer(unsigned int n, std::shared_ptr<Layer>& prev, std::string& Activation_function){
+    if (prev != 0)
+        prev_layer = prev;
+    else prev_layer = nullptr;
     layer_size = n;
     int act_fun = Parser(Activation_function,list_of_activation_funcs,NUM_OF_ACTIVATION_FUNCS);
     switch(act_fun) {
@@ -14,7 +15,7 @@ Layer::Layer(int n, std::shared_ptr<Layer>& prev,std::string& Activation_functio
     }
 
     for(int i = 0; i  < n; i++) {
-        neurons.push_back(Neuron());
+        neurons.emplace_back(0);
     }
 }
 
@@ -37,10 +38,11 @@ Layer_type Layer::Get_type() const {
 ////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////Полносвязный слой//////////////////////////////////////////////////////
 // соединяем  нейроны слоя связями с случайными весовыми коэффициентами с нейронами предыдущего слоя
-FullConnected_Layer::FullConnected_Layer(int n, std::shared_ptr<Layer> prev,std::string& Activation_function) : Layer(n,prev, Activation_function) {
+FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> prev,std::string& Activation_function) : Layer(n,prev, Activation_function) {
+    if (!prev){ throw std::runtime_error("FullConnected layer Null pointer for prev layer");}
     layer_size = layer_size + 1;
     neurons.push_back(Neuron());
-    neurons.at(layer_size-1).Set_value(1);
+    neurons.at(layer_size-1).Set_value((float)1.0);
     for (int i =0; i  < layer_size; i++){
         float* weights = new float[prev_layer->Size()];
         gen_array(0.0001, 0.2, prev_layer->Size(), weights);
@@ -138,4 +140,12 @@ Pooling_Layer::Pooling_Layer(std::shared_ptr<Layer> prev,std::string& Activation
 
 void Pooling_Layer::Calculate() {
 
+}
+
+Input_Layer::Input_Layer(unsigned int layer_size_) :Layer() {
+    layer_size = layer_size_;
+    for(int i = 0; i  < layer_size; i++) {
+        neurons.emplace_back(0);
+    }
+    type = Input;
 }

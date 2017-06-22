@@ -3,9 +3,83 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <iostream>
+#include "comm_funcs.h"
 
+float gaussrand_t(float MO, float sko)
+{
+    float sum = 0, x;
+    for (int i = 0; i<25; i++)
+        sum += 1.0*rand() / RAND_MAX;
+    x = (sqrt(2.0)*(sko)*(sum - 12.5)) / 1.99661 + MO;
 
-void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
+    return x;
+}
+
+void gen_array(const float N, const float M, const int Z, float *array)
+{
+    float average = (N + M) / 2.;
+    float sigma = (average - N) / 3.;
+
+    for (int i = 0; i<Z; i++) {
+        float new_value = gaussrand_t(average, sigma);
+
+         //есть вероятность (0.3%) что сгенерированное число выйдет за нужный нам диапазон
+        while (new_value < N || new_value > M)
+            new_value = gaussrand_t(average, sigma);
+
+        array[i] = new_value;
+    }
+}
+
+int8_t Parser(std::string& input,const std::string* possible_values_list, uint8_t num_of_possible) {
+    int8_t command_num = -1;
+    for (int i = 0; i < num_of_possible; i++){
+        size_t first_word_ptr = input.find(possible_values_list[i]);
+
+        if (first_word_ptr != std::string::npos) {
+            if (first_word_ptr == 0) {
+                command_num = i;
+                break;
+            }
+        }
+    }
+    return command_num;
+}
+
+std::vector<std::string>& Get_words(std::string& str, std::vector<std::string>& arr,std::string delim){
+    size_t prev = 0;
+    size_t next;
+    size_t delta = delim.length();
+
+    while( ( next = str.find( delim, prev ) ) != std::string::npos ){
+      arr.push_back( str.substr( prev, next-prev ) );
+      prev = next + delta;
+    }
+    arr.push_back( str.substr( prev ) );
+    return arr;
+}
+
+float SIGMOID(float S){
+   return 1/(1+exp(-S));
+}
+//Производные функций активации
+float DSIGMIOD(float S) {
+    return (1-(SIGMOID(S))*(SIGMOID(S)));
+}
+
+float ReLU(float S) {
+    if (S < 0) return 0;
+    else return S;
+}
+
+float Linear(float S) {
+    return S;
+}
+
+float SoftMax(float S){
+    return S;
+}
+/*void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 
 void convolution(float* input,const uint16_t input_width,const uint16_t input_height, float* mask, size_t el_width, size_t el_height){
 
@@ -38,12 +112,7 @@ void convolution(float* input,const uint16_t input_width,const uint16_t input_he
         if (out[i] <0) out[i] = 0;
     }
 
-    /*for(int i =0; i < 5;i++){
-        for(int j =0; j < 5; j++){
-            std::cout << out[i * input_height + j] <<" " ;
-        }
-        std::cout << std::endl;
-    }*/
+
 
     pooling(out,input_width,input_height,2,2);
 }
@@ -75,34 +144,8 @@ void pooling(float* input, const size_t width,const size_t height,const unsigned
             std::cout << out[i*new_h + j];
         }
     }
-}
+}*/
 
-int8_t Parser(std::string& input,const std::string* possible_values_list, uint8_t num_of_possible) {
-    int8_t command_num = -1;
-    for (int i = 0; i < num_of_possible; i++){
-        size_t first_word_ptr = input.find(possible_values_list[i]);
 
-        if (first_word_ptr != std::string::npos) {
-            if (first_word_ptr == 0) {
-                command_num = i;
-                break;
-            }
-        }
-    }
-    return command_num;
-}
-
-std::vector<std::string>& Get_words(std::string& str, std::vector<std::string>& arr,std::string delim){
-    size_t prev = 0;
-    size_t next;
-    size_t delta = delim.length();
-
-    while( ( next = str.find( delim, prev ) ) != std::string::npos ){
-      arr.push_back( str.substr( prev, next-prev ) );
-      prev = next + delta;
-    }
-    arr.push_back( str.substr( prev ) );
-    return arr;
-}
 
 #endif // CONVOLUTIONNN_H

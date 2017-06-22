@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "common_functions.cpp"
+#include "comm_funcs.h"
 #include "layer.h"
 
 class NeuralNet {
@@ -16,7 +16,7 @@ private:
     double error_coef;
 public:
     NeuralNet(uint8_t num_of_layers_,std::string& types,std::vector<uint16_t>& layers_sizes);
-    NeuralNet(std::string* names,uint16_t num_of_layers);
+    NeuralNet(std::string* names, uint16_t num_of_layers, uint16_t input_layer_size);
     Layer* forward_propognition(std::vector<float>&);
     void back_propognition(std::vector<float>&);
     void training(std::string& path);
