@@ -64,12 +64,13 @@ FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> 
 
 void FullConnected_Layer::Calculate(){
     if (!prev_layer) return;
-    std::fstream out_f("full_connected_test.log");
+    //std::ofstream out_f;
+    //out_f.open("full_connected_test.txt",std::ios_base::ate);
+    std::vector<Neuron> *prevNeurons = prev_layer->Get_neurons();
     for (size_t i = 0; i < layer_size-1; i++) {
         float tmp = 0;
         std::vector<Connection> *wgths_i = neurons[i].Get_connections();
-        std::vector<Neuron> *prevNeurons = prev_layer->Get_neurons();
-        out_f << i << std::endl;
+        //out_f << i << std::endl;
         if (wgths_i->size() != prevNeurons->size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
         for (size_t j = 0; j < prev_layer->Size(); j++) {
             out_f << j << "\t" << wgths_i->at(j).Get_Weight() <<"\t" << prevNeurons->at(j).Get_value() << std::endl;
@@ -78,8 +79,8 @@ void FullConnected_Layer::Calculate(){
         float out = activation_func(tmp);
         neurons.at(i).Set_value(out);
     }
-    out_f << "____________________________________________________________________________________________" << std::endl;
-    out_f.close();
+    //out_f << "____________________________________________________________________________________________" << std::endl;
+    //out_f.close();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

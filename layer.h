@@ -36,7 +36,7 @@ public:
     std::vector<Neuron>* Get_neurons();
     std::shared_ptr<Layer> Get_Prev() const;
     Layer_type Get_type() const;
-    virtual void Calculate(){ }
+    virtual void Calculate() = 0;
 };
 
 class FullConnected_Layer : public Layer{
@@ -50,17 +50,13 @@ private:
     uint16_t height;
     uint16_t width;
     uint16_t mask_size;
-    /*unsigned char num_of_masks;
-    uint16_t structural_width;
-    uint16_t structural_height;
-    uint8_t step_size;*/
 
     void convolution(float* input,const size_t input_width,const size_t input_height, float* mask, size_t el_width, size_t el_height);
 public:
     Convolution_Layer(std::shared_ptr<Layer> prev,std::string& Activation_function,\
                       uint16_t input_height,uint16_t input_width,\
                       uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
-    void Calculate();
+    virtual void Calculate();
 };
 
 class Pooling_Layer : public Layer {
@@ -73,13 +69,13 @@ class Pooling_Layer : public Layer {
     void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 public:
     Pooling_Layer(std::shared_ptr<Layer> prev,std::string& Activation_function, uint16_t input_width, uint16_t input_height, uint8_t step_size, uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
-    void Calculate();
+    virtual void Calculate();
 };
 
 class Input_Layer: public Layer{
 public:
     Input_Layer(unsigned int layer_size_);
-    void Calculate();
+    virtual void Calculate();
     void Fill_layer(std::vector<float>& data);
 };
 

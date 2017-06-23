@@ -4,7 +4,7 @@
 // Layer_type = Convolution num_of_neurons = <n> activation_func = <func_name> img_height = <n> img_width = <n> el_with = <n> el_height = <n> number_of_masks = <n>
 // Layer_type = Pooling num_of_neurons = <n> activation_func = <func_name> el_with = <n> el_height = <n> number_of_masks = <n> step_size = <n>
 NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_layer_size) {
-    layers.push_back(std::make_shared<Layer>(Input_Layer(input_layer_size)));
+    layers.emplace_back( new Input_Layer(input_layer_size));
     const int NUM_OF_PARAMS = 9;
     const std::string parametrs_list[] {"Layer_type", "num_of_neurons", "activation_func", "el_width", "el_height", "number_of_masks", "step_size", "img_height", "img_width"};
     for (int j = 0; j < num_of_Layers; j++) {
@@ -116,25 +116,20 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
 
         switch((int)LT){
         case FullConnected:
-            layers.push_back(std::make_shared<Layer>(FullConnected_Layer(num_of_neurons,prev,Activ_func)));
+            layers.emplace_back(new FullConnected_Layer(num_of_neurons,prev,Activ_func));
             break;
         case Convolution:
-            layers.push_back(std::make_shared<Layer>(Convolution_Layer(prev,Activ_func, img_width,img_height, el_width,el_height,num_of_masks)));
+            layers.emplace_back(new Convolution_Layer(prev,Activ_func, img_width,img_height, el_width,el_height,num_of_masks));
             break;
         case Pooling:
-            layers.push_back(std::make_shared<Layer>(Pooling_Layer(prev,Activ_func, img_width,img_height, step_size,el_width,el_height,num_of_masks)));
+            layers.emplace_back(new Pooling_Layer(prev,Activ_func, img_width,img_height, step_size,el_width,el_height,num_of_masks));
             break;
         }
     }
 }
 
 std::shared_ptr<Layer>* NeuralNet::forward_propognition(std::vector<float>& input_data) {
-    Layer* pLayer = layers[0].get();
-     Input_Layer* pIL = dynamic_cast<Input_Layer*> (pLayer);
-     if (pIL == nullptr) throw std::runtime_error("NeuralNet::forward_propognition. Input_layer error");
-     pIL->Fill_layer(input_data);
-   // std::shared_ptr<Input_Layer> sp1 = std::dynamic_pointer_cast<Input_Layer>(layers[0]);
-    //sp1->Fill_layer(input_data);
+    std::static_pointer_cast<Input_Layer>(layers[0])->Fill_layer(input_data);
     for(uint8_t i = 1; i < layers.size();i++){
         layers[i]->Calculate();
     }
