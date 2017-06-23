@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         inp.push_back(1);
     }
 
-    new_net.forward_propognition(inp);
+    new_net.forward_propagaition(inp);
 
     std::cout << "CREATED!" << std::endl;
 
