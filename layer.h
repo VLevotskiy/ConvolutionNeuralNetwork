@@ -79,6 +79,7 @@ public:
 class Input_Layer: public Layer{
 public:
     Input_Layer(unsigned int layer_size_);
+    void Calculate();
     void Fill_layer(std::vector<float>& data);
 };
 

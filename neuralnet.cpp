@@ -129,7 +129,12 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
 }
 
 std::shared_ptr<Layer>* NeuralNet::forward_propognition(std::vector<float>& input_data) {
-    (dynamic_cast<Input_Layer*>(layers.at(0).get()))->Fill_layer(input_data);
+    Layer* pLayer = layers[0].get();
+     Input_Layer* pIL = dynamic_cast<Input_Layer*> (pLayer);
+     if (pIL == nullptr) throw std::runtime_error("NeuralNet::forward_propognition. Input_layer error");
+     pIL->Fill_layer(input_data);
+   // std::shared_ptr<Input_Layer> sp1 = std::dynamic_pointer_cast<Input_Layer>(layers[0]);
+    //sp1->Fill_layer(input_data);
     for(uint8_t i = 1; i < layers.size();i++){
         layers[i]->Calculate();
     }

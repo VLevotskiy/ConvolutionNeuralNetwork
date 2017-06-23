@@ -176,3 +176,7 @@ void Input_Layer::Fill_layer(std::vector<float>& data) {
         neurons[i].Set_value(data[i]);
     }
 }
+
+void Input_Layer::Calculate(){
+    return;
+}
