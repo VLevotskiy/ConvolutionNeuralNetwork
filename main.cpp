@@ -13,12 +13,12 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     NeuralNet new_net(layers, 3,841);
 
-    std::vector<float> inp;
+    std::vector< double> inp;
     for (int i =0; i < 841; i++){
         inp.push_back(1);
     }
 
-    new_net.forward_propagaition(inp);
+    new_net.forward_propagation(inp);
 
     std::cout << "CREATED!" << std::endl;
 

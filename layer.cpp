@@ -2,7 +2,7 @@
 #include "comm_funcs.h"
 #include <fstream>
 
-Layer::Layer(unsigned int n, std::shared_ptr<Layer>& prev, std::string& Activation_function, Layer_type type_){
+Layer::Layer(unsigned int n, std::shared_ptr<Layer> prev, std::string& Activation_function, Layer_type type_){
     if (prev != 0)
         prev_layer = prev;
     else prev_layer = nullptr;
@@ -32,8 +32,8 @@ unsigned int Layer::Size() const {
     return layer_size;
 }
 
-std::vector<Neuron>* Layer::Get_neurons() {
-    return &neurons;
+std::vector<Neuron>& Layer::Get_neurons() {
+    return neurons;
 }
 
 std::shared_ptr<Layer>  Layer::Get_Prev() const {
@@ -44,6 +44,22 @@ Layer_type Layer::Get_type() const {
     return type;
 }
 
+void Layer::Update_weights(const double training_rate) {
+    std::vector<Neuron> prev_neurons = prev_layer->Get_neurons();
+
+    for (size_t i = 0; i < Size(); i++) {
+        std::vector<Connection> neuron_connections = neurons[i].Get_connections();
+
+        for (size_t j = 0; j < prev_layer->Size(); j++) {
+            double dw = training_rate * neurons[i].Get_delta() * prev_neurons[j].Get_value();
+            neuron_connections[j].Set_Last_dw(dw);
+            double new_weight = neuron_connections[j].Get_Weight() + dw;
+            neuron_connections[j].Set_weight(new_weight);
+        }
+    }
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////Полносвязный слой//////////////////////////////////////////////////////
 // соединяем  нейроны слоя связями с случайными весовыми коэффициентами с нейронами предыдущего слоя
@@ -51,9 +67,9 @@ FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> 
     if (!prev){ throw std::runtime_error("FullConnected layer Null pointer for prev layer");}
     layer_size = layer_size + 1;
     neurons.push_back(Neuron());
-    neurons.at(layer_size-1).Set_value((float)1.0);
+    neurons.at(layer_size-1).Set_value(( double)1.0);
     for (int i =0; i  < layer_size; i++){
-        float* weights = new float[prev_layer->Size()];
+         double* weights = new  double[prev_layer->Size()];
         gen_array(0.0001, 0.2, prev_layer->Size(), weights);
         for (int j = 0; j < prev_layer->Size(); j++){
             neurons[i].Add_Connection(j,weights[j]);
@@ -64,23 +80,39 @@ FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> 
 
 void FullConnected_Layer::Calculate(){
     if (!prev_layer) return;
-    //std::ofstream out_f;
-    //out_f.open("full_connected_test.txt",std::ios_base::ate);
-    std::vector<Neuron> *prevNeurons = prev_layer->Get_neurons();
+    std::vector<Neuron> prevNeurons = prev_layer->Get_neurons();
     for (size_t i = 0; i < layer_size-1; i++) {
-        float tmp = 0;
-        std::vector<Connection> *wgths_i = neurons[i].Get_connections();
-        //out_f << i << std::endl;
-        if (wgths_i->size() != prevNeurons->size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
+         double tmp = 0;
+        std::vector<Connection> wgths_i = neurons[i].Get_connections();
+        if (wgths_i.size() != prevNeurons.size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
         for (size_t j = 0; j < prev_layer->Size(); j++) {
-            out_f << j << "\t" << wgths_i->at(j).Get_Weight() <<"\t" << prevNeurons->at(j).Get_value() << std::endl;
-            tmp += wgths_i->at(j).Get_Weight() * prevNeurons->at(j).Get_value();
+            tmp += wgths_i.at(j).Get_Weight() * prevNeurons.at(j).Get_value();
         }
-        float out = activation_func(tmp);
+         double out = activation_func(tmp);
         neurons.at(i).Set_value(out);
     }
-    //out_f << "____________________________________________________________________________________________" << std::endl;
-    //out_f.close();
+}
+
+//порядок слоёв в сети prev ->current->next
+void FullConnected_Layer::Back_Propagation(std::shared_ptr<Layer>& Next_layer){
+    std::vector<Neuron> next_neurons = Next_layer->Get_neurons();
+    std::vector< double> sums(neurons.size());
+
+    std::fill(sums.begin(),sums.end(),0);
+    for (size_t j = 0; j < neurons.size(); j++) {
+        for (size_t k = 0; k < next_neurons.size(); ++k){
+            std::vector<Connection> current_next_con = next_neurons[k].Get_connections();
+            sums[j] += current_next_con[j].Get_Weight() * next_neurons[k].Get_delta();
+        }
+        neurons[j].Set_delta(sums[j] * DSIGMIOD(neurons[j].Get_value()));
+    }
+}
+
+void FullConnected_Layer::Back_Propagation(std::vector< double>& actual_values){
+    if (actual_values.size() != neurons.size()) throw std::runtime_error("Size of actual values < size of last layer");
+    for (size_t j = 0; j < neurons.size(); j++) {
+        neurons[j].Set_delta( (actual_values[j] - neurons[j].Get_value()) * DSIGMIOD(neurons[j].Get_value()) );
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,11 +121,11 @@ Convolution_Layer::Convolution_Layer(std::shared_ptr<Layer> prev,std::string& Ac
                                      uint16_t input_height,uint16_t input_width,\
                                      uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks) : Layer(input_width * input_height * num_of_masks,prev, Activation_function,Convolution) {
 
-    float** weights = new float*[num_of_masks];
+     double** weights = new  double*[num_of_masks];
     mask_size = input_width * input_height;
     //layer_size = mask_size * num_of_masks;
     for (int i = 0; i < num_of_masks;i++){
-        weights[i] = new float[mask_size];
+        weights[i] = new  double[mask_size];
         gen_array(0.0001, 0.2, mask_size, &weights[i][0]);
     }
 
@@ -169,7 +201,7 @@ Input_Layer::Input_Layer(unsigned int layer_size_) :Layer() {
     Create_neurons();
 }
 
-void Input_Layer::Fill_layer(std::vector<float>& data) {
+void Input_Layer::Fill_layer(std::vector< double>& data) {
     if (layer_size <= 0) throw std::runtime_error("Input_layer::Fill_layer. Layer is empty");
     if (layer_size < data.size()) throw std::runtime_error("Input_layer::Fill_layer. Input_vector large then layer_size");
 
@@ -181,3 +213,5 @@ void Input_Layer::Fill_layer(std::vector<float>& data) {
 void Input_Layer::Calculate(){
     return;
 }
+
+

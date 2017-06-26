@@ -4,7 +4,7 @@
 // Layer_type = Convolution num_of_neurons = <n> activation_func = <func_name> img_height = <n> img_width = <n> el_with = <n> el_height = <n> number_of_masks = <n>
 // Layer_type = Pooling num_of_neurons = <n> activation_func = <func_name> el_with = <n> el_height = <n> number_of_masks = <n> step_size = <n>
 NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_layer_size) {
-    layers.emplace_back( new Input_Layer(input_layer_size));
+    layers.emplace_back( std::make_shared<Input_Layer>(input_layer_size));//new Input_Layer(input_layer_size));
     const int NUM_OF_PARAMS = 9;
     const std::string parametrs_list[] {"Layer_type", "num_of_neurons", "activation_func", "el_width", "el_height", "number_of_masks", "step_size", "img_height", "img_width"};
     for (int j = 0; j < num_of_Layers; j++) {
@@ -16,7 +16,7 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
             }
         }
 
-        Layer_type LT;
+        Layer_type LT = Input;
         std::string Activ_func;
         uint16_t num_of_neurons = 0;
         uint8_t el_width = 0;
@@ -25,7 +25,7 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
         uint8_t step_size = 0;
         uint8_t img_height = 0;
         uint8_t img_width =0;
-        for (int i = 0; i < words.size(); ++i){
+        for (size_t i = 0; i < words.size(); ++i){
             int8_t param = Parser(words.at(i),parametrs_list,NUM_OF_PARAMS);
             switch(param){
             case 0: {
@@ -114,28 +114,65 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
         }
         auto prev = layers.at(j);
 
-        switch((int)LT){
+        switch(LT){
         case FullConnected:
-            layers.emplace_back(new FullConnected_Layer(num_of_neurons,prev,Activ_func));
+            layers.emplace_back(std::make_shared<FullConnected_Layer>(num_of_neurons, prev, Activ_func));//new FullConnected_Layer(num_of_neurons,prev,Activ_func));
             break;
         case Convolution:
-            layers.emplace_back(new Convolution_Layer(prev,Activ_func, img_width,img_height, el_width,el_height,num_of_masks));
+            layers.emplace_back(std::make_shared<Convolution_Layer>(prev,Activ_func, img_width,img_height, el_width,el_height,num_of_masks));
             break;
         case Pooling:
-            layers.emplace_back(new Pooling_Layer(prev,Activ_func, img_width,img_height, step_size,el_width,el_height,num_of_masks));
+            layers.emplace_back(std::make_shared<Pooling_Layer>(prev,Activ_func,img_width,img_height,step_size,el_width,el_height,num_of_masks));//new Pooling_Layer(prev,Activ_func, img_width,img_height, step_size,el_width,el_height,num_of_masks));
             break;
+        case Input: break;
+        default: throw std::runtime_error("Unknow layer type"); break;
         }
     }
 }
 
-std::shared_ptr<Layer>* NeuralNet::forward_propagaition(const std::vector<float>& input_data) {
+void NeuralNet::forward_propagation(std::vector< double>& input_data) {
     std::static_pointer_cast<Input_Layer>(layers[0])->Fill_layer(input_data);
     for(uint8_t i = 1; i < layers.size();i++){
         layers[i]->Calculate();
     }
 }
 
-void NeuralNet::back_propagaition(const std::vector<float>&) {
+bool NeuralNet::back_propagation(const std::vector< double>& actual_values) {
+    //Рассчет ошибки
+    double Error = calculate_error(actual_values);
+    if (Error < training_threshold) {
+        return true;
+    }
+
+    //Рассчет дельт послденго слоя
+    layers[num_of_layers -1]->Back_Propagation(actual_values);
+
+    //Рассчет дельт скртытых слоёв
+    for (int i = num_of_layers-2; i >= 0; i--) {
+        layers[i]->Back_Propagation(layers[i+1]);
+    }
+
+    //Изменение весов
+    update_weights();
+
+    return false;
+}
+
+double NeuralNet::calculate_error(const std::vector< double>& actual_values) {
+    if (actual_values.size() != num_of_layers) throw std::runtime_error("Size of actual values < size of last layer");
+    double sum = 0;
+    std::vector<Neuron> last_layer_neurons = layers[num_of_layers-1]->Get_neurons();
+    for (size_t i = 0; i <actual_values.size(); i++) {
+        double temp = last_layer_neurons[i].Get_value() - actual_values[i];
+        sum += temp * temp;
+    }
+    return 0.5 * sum;
 
 }
+
+ void NeuralNet::update_weights(){
+     for (int i = num_of_layers-2; i >= 0; --i) {
+         layers[i]->Update_weights(0.005);
+     }
+ }
 

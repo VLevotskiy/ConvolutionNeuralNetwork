@@ -5,9 +5,9 @@
 #include <iostream>
 #include "comm_funcs.h"
 
-float gaussrand_t(float MO, float sko)
+ double gaussrand_t( double MO,  double sko)
 {
-    float sum = 0, x;
+     double sum = 0, x;
     for (int i = 0; i<25; i++)
         sum += 1.0*rand() / RAND_MAX;
     x = (sqrt(2.0)*(sko)*(sum - 12.5)) / 1.99661 + MO;
@@ -15,13 +15,13 @@ float gaussrand_t(float MO, float sko)
     return x;
 }
 
-void gen_array(const float N, const float M, const int Z, float *array)
+void gen_array(const  double N, const  double M, const int Z,  double *array)
 {
-    float average = (N + M) / 2.;
-    float sigma = (average - N) / 3.;
+     double average = (N + M) / 2.;
+     double sigma = (average - N) / 3.;
 
     for (int i = 0; i<Z; i++) {
-        float new_value = gaussrand_t(average, sigma);
+         double new_value = gaussrand_t(average, sigma);
 
          //есть вероятность (0.3%) что сгенерированное число выйдет за нужный нам диапазон
         while (new_value < N || new_value > M)
@@ -59,31 +59,32 @@ std::vector<std::string>& Get_words(std::string& str, std::vector<std::string>& 
     return arr;
 }
 
-float SIGMOID(float S){
+ double SIGMOID( double S){
    return 1/(1+exp(-S));
 }
 //Производные функций активации
-float DSIGMIOD(float S) {
-    return (1-(SIGMOID(S))*(SIGMOID(S)));
+ double DSIGMIOD( double S) {
+    //return (1-(SIGMOID(S))*(SIGMOID(S)));
+    return SIGMOID(S) * (1 - SIGMOID(S));
 }
 
-float ReLU(float S) {
+ double ReLU( double S) {
     if (S < 0) return 0;
     else return S;
 }
 
-float Linear(float S) {
+ double Linear( double S) {
     return S;
 }
 
-float SoftMax(float S){
+ double SoftMax( double S){
     return S;
 }
-/*void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
+/*void pooling( double* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 
-void convolution(float* input,const uint16_t input_width,const uint16_t input_height, float* mask, size_t el_width, size_t el_height){
+void convolution( double* input,const uint16_t input_width,const uint16_t input_height,  double* mask, size_t el_width, size_t el_height){
 
-    float out[input_height * input_width];
+     double out[input_height * input_width];
     memset(out, 0, sizeof(int) * input_width*input_height);
 
     int start_w_offset = (int)el_width * 0.5;
@@ -117,15 +118,15 @@ void convolution(float* input,const uint16_t input_width,const uint16_t input_he
     pooling(out,input_width,input_height,2,2);
 }
 
-void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step ){
+void pooling( double* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step ){
     unsigned int new_w = width/el_size, new_h = height/el_size;
     if (width % el_size != 0) new_w +=1;
     if (height % el_size != 0) new_h +=1;
-    float* out = (float*)malloc(new_w*new_h*sizeof(float));
+     double* out = ( double*)malloc(new_w*new_h*sizeof( double));
     for (int i =0, out_i =0; i < height; i+=step, out_i++) {
         for (int j = 0,out_j = 0; j < width; j+=step, out_j++){
 
-            float max = input[i * width + j];
+             double max = input[i * width + j];
             for (int m = 0; m < el_size;m++){
                 for (int n = 0; n < el_size;n++) {
                     const int  pos = (i+m)*width + j + n;

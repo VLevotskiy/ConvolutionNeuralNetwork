@@ -21,7 +21,7 @@ protected:
     unsigned int layer_size;
     std::shared_ptr<Layer>  prev_layer;
     Layer_type type;
-    float (*activation_func)(float);
+     double (*activation_func)( double);
 
     void Create_neurons();
 public:
@@ -31,34 +31,45 @@ public:
         activation_func = nullptr;
     }
 
-    Layer(unsigned int n, std::shared_ptr<Layer>& prev, std::string &Activation_function, Layer_type type_);
-    unsigned int Size() const;// { return layer_size;}
-    std::vector<Neuron>* Get_neurons();
+    Layer(unsigned int n, std::shared_ptr<Layer> prev, std::string &Activation_function, Layer_type type_);
+    unsigned int Size() const;
+    std::vector<Neuron> &Get_neurons();
     std::shared_ptr<Layer> Get_Prev() const;
     Layer_type Get_type() const;
+    void Update_weights(const double training_rate);
     virtual void Calculate() = 0;
+    virtual void Back_Propagation(std::shared_ptr<Layer>& Next_layer) {}
+    virtual void Back_Propagation(const std::vector<double>& actual_values){}
 };
 
+//Полносвязный слой. Каждый нейрон слоя соединен с каждым нейроном предыдущего слоя.
 class FullConnected_Layer : public Layer{
 public:
-    FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> prev, std::string &Activation_function);
+    FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> prev, std::string& Activation_function);
     void Calculate();
+    void Back_Propagation(std::shared_ptr<Layer>& Next_layer);
+    void Back_Propagation(std::vector< double>& actual_values);
 };
 
+
+//Сверточный слой. Выполнятеся свертка нейронов предыдущего слоя с заданным весами структурным элементом
 class Convolution_Layer : public Layer {
 private:
     uint16_t height;
     uint16_t width;
     uint16_t mask_size;
 
-    void convolution(float* input,const size_t input_width,const size_t input_height, float* mask, size_t el_width, size_t el_height);
+    void convolution( double* input,const size_t input_width,const size_t input_height,  double* mask, size_t el_width, size_t el_height);
 public:
     Convolution_Layer(std::shared_ptr<Layer> prev,std::string& Activation_function,\
                       uint16_t input_height,uint16_t input_width,\
                       uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
-    virtual void Calculate();
+    void Calculate();
+    void Back_Propagation(std::shared_ptr<Layer>& Next_layer){}
+    void Back_Propagation(const std::vector<double>& actual_values){}
 };
 
+//слой выбирает наибольшее значение нейрона среди нейронов, попавших в структурный элмент определенного размера.
 class Pooling_Layer : public Layer {
     unsigned char num_of_masks;
     uint16_t mask_size;
@@ -66,17 +77,22 @@ class Pooling_Layer : public Layer {
     uint16_t structural_height;
     uint8_t step_size;
 
-    void pooling(float* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
+    void pooling( double* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 public:
     Pooling_Layer(std::shared_ptr<Layer> prev,std::string& Activation_function, uint16_t input_width, uint16_t input_height, uint8_t step_size, uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks);
-    virtual void Calculate();
+    void Calculate();
+    void Back_Propagation(std::shared_ptr<Layer>& Next_layer){}
+    void Back_Propagation(const std::vector<double>& actual_values){}
 };
 
+//Входной слой. Хранит данные поданые на вход. Не выполняет никаких вычислений.
 class Input_Layer: public Layer{
 public:
     Input_Layer(unsigned int layer_size_);
-    virtual void Calculate();
-    void Fill_layer(std::vector<float>& data);
+    void Calculate();
+    void Back_Propagation(std::shared_ptr<Layer>& Next_layer){}
+    void Back_Propagation(const std::vector<double>& actual_values){}
+    void Fill_layer(std::vector< double>& data);
 };
 
 #endif // LAYER_H

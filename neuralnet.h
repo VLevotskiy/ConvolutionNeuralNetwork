@@ -14,12 +14,14 @@ private:
 
     double training_speed;
     double error_coef;
+    double training_threshold;
 public:
     NeuralNet(std::string* names, uint16_t num_of_layers, uint16_t input_layer_size);
-    std::shared_ptr<Layer>* forward_propagaition(const std::vector<float>&);
-    void back_propagaition(const std::vector<float>&);
-    void calculate_error(const std::vector<float>&);
+    void forward_propagation(std::vector< double>&);
+    bool back_propagation(const std::vector< double>& actual_values);
+    double calculate_error(const std::vector< double>& actual_values);
     void training(const std::string& path);
+    void update_weights();
 
 };
 
