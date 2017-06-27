@@ -36,10 +36,10 @@ public:
     std::vector<Neuron> &Get_neurons();
     std::shared_ptr<Layer> Get_Prev() const;
     Layer_type Get_type() const;
-    void Update_weights(const double training_rate);
+    void Update_weights(const double training_rate,const double inert_coeff);
     virtual void Calculate() = 0;
-    virtual void Back_Propagation(std::shared_ptr<Layer>& Next_layer) {}
-    virtual void Back_Propagation(const std::vector<double>& actual_values){}
+    virtual void Back_Propagation(std::shared_ptr<Layer>& Next_layer) =0;
+    virtual void Back_Propagation(const std::vector<double>& actual_values) =0;
 };
 
 //Полносвязный слой. Каждый нейрон слоя соединен с каждым нейроном предыдущего слоя.
@@ -48,7 +48,7 @@ public:
     FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> prev, std::string& Activation_function);
     void Calculate();
     void Back_Propagation(std::shared_ptr<Layer>& Next_layer);
-    void Back_Propagation(std::vector< double>& actual_values);
+    void Back_Propagation(const std::vector< double>& actual_values);
 };
 
 

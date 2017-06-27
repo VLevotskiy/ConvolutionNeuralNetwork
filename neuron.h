@@ -1,6 +1,7 @@
 #ifndef NEURON_H
 #define NEURON_H
 #include <vector>
+#include <memory>
 #include "connection.h"
 
 class Neuron {
@@ -15,9 +16,14 @@ public:
     void Set_value(const  double value) { out_value = value;}
     void Set_delta(const  double value) { delta = value;}
 
-     double Get_value() const { return out_value;}
-     double Get_delta() const { return delta; }
-    const std::vector<Connection>& Get_connections() { return connections;}
+    double Get_value() const { return out_value;}
+    double Get_delta() const { return delta; }
+    std::vector<Connection>& Get_connections() { return connections;}
+    void Update_weight(unsigned int num_of_neuron, double weight, double dw) {
+        if (num_of_neuron >= connections.size())  throw std::runtime_error("Neuron::Update_weight. Neuron out of range");
+        connections[num_of_neuron].Set_Last_dw(dw);
+        connections[num_of_neuron].Set_weight(weight);
+    }
 
 };
 
