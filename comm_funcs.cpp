@@ -59,27 +59,41 @@ std::vector<std::string>& Get_words(std::string& str, std::vector<std::string>& 
     return arr;
 }
 
- double SIGMOID( double S){
+double SIGMOID_f( double S){
    return 1/(1+exp(-S));
 }
-//Производные функций активации
- double DSIGMIOD( double S) {
-    //return (1-(SIGMOID(S))*(SIGMOID(S)));
-    return SIGMOID(S) * (1 - SIGMOID(S));
-}
 
- double ReLU( double S) {
+double ReLU_f( double S) {
     if (S < 0) return 0;
     else return S;
 }
 
- double Linear( double S) {
+ double Linear_f( double S) {
     return S;
 }
 
- double SoftMax( double S){
+ double SoftMax_f( double S){
     return S;
 }
+
+//Производные функций активации
+double DSIGMOID( double S) {
+   return SIGMOID_f(S) * (1 - SIGMOID_f(S));
+}
+
+double DReLU(double S){
+   if (S < 0) return 0;
+   else return 1;
+}
+
+double DSoftMax(double S){
+   return S * (1 - S);
+}
+
+double DLinear(double S) {
+    return 1;
+}
+
 /*void pooling( double* input, const size_t width,const size_t height,const unsigned char el_size, const unsigned char step );
 
 void convolution( double* input,const uint16_t input_width,const uint16_t input_height,  double* mask, size_t el_width, size_t el_height){

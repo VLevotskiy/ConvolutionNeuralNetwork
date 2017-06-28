@@ -24,7 +24,7 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
         }
 
         Layer_type LT = Input;
-        std::string Activ_func;
+        Activation_funcs Activ_func;
         uint16_t num_of_neurons = 0;
         uint8_t el_width = 0;
         uint8_t el_height = 0;
@@ -65,7 +65,14 @@ NeuralNet::NeuralNet(std::string *str, uint16_t num_of_Layers,uint16_t input_lay
             }
 
             case 2: {
-                Activ_func =words[++i];
+                int act_fun = Parser(words[++i],list_of_activation_funcs,NUM_OF_ACTIVATION_FUNCS);
+                switch(act_fun) {
+                case 0: Activ_func = Sigmoid; break;
+                case 1: Activ_func = ReLU; break;
+                case 2: Activ_func = SoftMax; break;
+                case 3: Activ_func = Linear; break;
+                }
+
                 break;
             }
 
@@ -186,77 +193,10 @@ void NeuralNet::update_weights(){
      }
  }
 
-void NeuralNet::training(const std::string& path) {
-    std::vector<double> actual_value;
-    for (size_t i = 0; i < 21; i++){
-        actual_value.push_back(0);
-    }
-
-    for (int k =0; k < 10; k++){
-        int i = 1;
-        for (;i<200;i++){
-            for (int j =0;j < 21; j++){
-                std::string new_path = path;
-                switch(j){
-                case 0:{new_path.append("0/"); break;}
-                case 1:{new_path.append("1/"); break;}
-                case 2:{new_path.append("2/"); break;}
-                case 3:{new_path.append("3/"); break;}
-                case 4:{new_path.append("4/"); break;}
-                case 5:{new_path.append("5/"); break;}
-                case 6:{new_path.append("6/"); break;}
-                case 7:{new_path.append("7/"); break;}
-                case 8:{new_path.append("8/"); break;}
-                case 9:{new_path.append("9/"); break;}
-                case 10:{new_path.append("A/"); break;}
-                case 11:{new_path.append("B/"); break;}
-                case 12:{new_path.append("C/"); break;}
-                case 13:{new_path.append("E/"); break;}
-                case 14:{new_path.append("H/"); break;}
-                case 15:{new_path.append("K/"); break;}
-                case 16:{new_path.append("M/"); break;}
-                case 17:{new_path.append("P/"); break;}
-                case 18:{new_path.append("T/"); break;}
-                case 19:{new_path.append("X/"); break;}
-                case 20:{new_path.append("Y/"); break;}
-                default:{continue;break;}
-                }
-                new_path += std::to_string(i)+".bmp";
-                //std::cout << new_path << std::endl;
-                std::vector<double> input_vector;
-                std::ifstream input(new_path, std::ios::binary);
-                if (!input.is_open()) throw std::runtime_error("Can't open file " + new_path);
-                input.seekg(1078);
-
-                char y;
-                int symbls_cntr = 0;
-                while (!input.eof())
-                {
-                    input.get(y);
-                    symbls_cntr++;
-                    if (symbls_cntr < 13){
-                        input_vector.push_back(y /255.);
-                    }
-                    if (symbls_cntr == 15) symbls_cntr = 0;
-                }
-
-                input.close();
-                forward_propagation(input_vector);
-
-                actual_value[j] = 1;
-                if (i < 160){
-                    back_propagation(actual_value);
-                }
-                else {
-                    std::cout << "symbol " << j << std::endl;
-                    std::vector<Neuron> neuron = layers[num_of_layers-1]->Get_neurons();
-                    for (int i = 0; i <  layers[num_of_layers-1]->Size()-1; i++) {
-                        std::cout << i << "\t" << neuron[i].Get_value() << std::endl;
-                    }
-                }
-                actual_value[j] = 0;
-            }
-        }
+void NeuralNet::Get_last_layer() {
+    std::vector<Neuron> neuron = layers[num_of_layers-1]->Get_neurons();
+    for (size_t i = 0; i <  layers[num_of_layers-1]->Size()-1; i++) {
+        std::cout << i << "\t" << neuron[i].Get_value() << std::endl;
     }
 
 

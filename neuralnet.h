@@ -20,7 +20,7 @@ public:
     void forward_propagation(std::vector< double>&);
     bool back_propagation(const std::vector< double>& actual_values);
     double calculate_error(const std::vector< double>& actual_values);
-    void training(const std::string& path);
+    void Get_last_layer();
     void update_weights();
 
 };
