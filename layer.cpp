@@ -7,6 +7,7 @@ Layer::Layer(unsigned int n, std::shared_ptr<Layer> prev, Activation_funcs Activ
         prev_layer = prev;
     else prev_layer = nullptr;
     layer_size = n;
+    activation_func =Activation_function;
     //Activation_funcs act_fun = (Activation_funcs)Parser(Activation_function,list_of_activation_funcs,NUM_OF_ACTIVATION_FUNCS);
     switch(Activation_function) {
     case Sigmoid: D_activation_func = &DSIGMOID; break;
@@ -14,8 +15,9 @@ Layer::Layer(unsigned int n, std::shared_ptr<Layer> prev, Activation_funcs Activ
     case SoftMax: D_activation_func = &DSoftMax; break;
     case Linear: D_activation_func = &DLinear; break;
     }
+
     type = type_;
-    if (type != Pooling){
+    if (type != Pooling && type != Input){
         Create_neurons();
     }
 
@@ -54,7 +56,7 @@ void Layer::Update_weights(const double training_rate,const double inertia_coeff
         for (size_t j = 0; j < prev_layer->Size(); j++) {
             double dw = (1 - inertia_coeff) * training_rate * neurons[i].Get_delta() * prev_neurons[j].Get_value() + inertia_coeff * neuron_connections[j].Get_Last_dw();
             //neuron_connections[j].Set_Last_dw(dw);
-            double new_weight = neuron_connections[j].Get_Weight() + dw;
+            double new_weight = neuron_connections[j].Get_weight() + dw;
             //neuron_connections[j].Set_weight(new_weight);
             neurons[i].Update_weight(j, new_weight,dw);
         }
@@ -64,9 +66,9 @@ void Layer::Update_weights(const double training_rate,const double inertia_coeff
 
 void Layer::Activate_Layer() {
     int layer_size_ = layer_size;
-    if (type == FullConnected) {
-        layer_size_ -= 1;
-    }
+    //if (type == FullConnected) {
+    //    layer_size_ -= 1;
+    //}
     switch (activation_func){
     case Sigmoid: {
         for (int i = 0; i < layer_size_; i++){
@@ -103,9 +105,9 @@ void Layer::Activate_Layer() {
 // соединяем  нейроны слоя связями с случайными весовыми коэффициентами с нейронами предыдущего слоя
 FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> prev, Activation_funcs Activation_function) : Layer(n,prev, Activation_function,FullConnected) {
     if (!prev){ throw std::runtime_error("FullConnected layer Null pointer for prev layer");}
-    layer_size = layer_size+1;
-    neurons.push_back(Neuron());
-    neurons.at(layer_size-1).Set_value(( double)1.0);
+    layer_size = layer_size;//+1;
+    //neurons.push_back(Neuron());
+    //neurons.at(layer_size-1).Set_value(( double)1.0);
     for (int i =0; i  < layer_size; i++){
          double* weights = new  double[prev_layer->Size()];
         gen_array(-0.2, 0.2, prev_layer->Size(), weights);
@@ -119,12 +121,12 @@ FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> 
 void FullConnected_Layer::Calculate(){
     if (!prev_layer) return;
     std::vector<Neuron> prevNeurons = prev_layer->Get_neurons();
-    for (size_t i = 0; i < layer_size-1; i++) {
+    for (size_t i = 0; i < layer_size/*-1*/; i++) {
          double tmp = 0;
         std::vector<Connection> wgths_i = neurons[i].Get_connections();
         if (wgths_i.size() != prevNeurons.size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
-        for (size_t j = 0; j < prev_layer->Size(); j++) {
-            tmp += wgths_i.at(j).Get_Weight() * prevNeurons.at(j).Get_value();
+        for (size_t j = 0; j < prev_layer->Size()/*-1*/; j++) {
+            tmp += wgths_i.at(j).Get_weight() * prevNeurons.at(j).Get_value();
         }
         neurons[i].Set_value(tmp);
     }
@@ -141,15 +143,15 @@ void FullConnected_Layer::Back_Propagation(std::shared_ptr<Layer>& Next_layer){
     for (size_t j = 0; j < neurons.size(); j++) {
         for (size_t k = 0; k < next_neurons.size(); ++k){
             std::vector<Connection> current_next_con = next_neurons[k].Get_connections();
-            sums[j] += current_next_con[j].Get_Weight() * next_neurons[k].Get_delta();
+            sums[j] += current_next_con[j].Get_weight() * next_neurons[k].Get_delta();
         }
         neurons[j].Set_delta(sums[j] * D_activation_func(neurons[j].Get_value()));
     }
 }
 
 void FullConnected_Layer::Back_Propagation(const std::vector< double>& actual_values){
-    if (actual_values.size() != layer_size-1) throw std::runtime_error("Size of actual values < size of last layer");
-    for (size_t j = 0; j < layer_size-1; j++) {
+    if (actual_values.size() != layer_size) throw std::runtime_error("Size of actual values < size of last layer");
+    for (size_t j = 0; j < layer_size; j++) {
         neurons[j].Set_delta( (actual_values[j] - neurons[j].Get_value()) * D_activation_func(neurons[j].Get_value()) );
     }
 }

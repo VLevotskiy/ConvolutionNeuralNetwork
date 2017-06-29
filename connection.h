@@ -24,7 +24,7 @@ public:
     inline void Set_weight(const  double w) { weight = w; }
     inline void Set_Last_dw(const  double dw) { last_dw = dw; }
     inline unsigned int Get_Neuron_num() const { return neuron_num; }
-    inline  double Get_Weight() const { return weight; }
+    inline  double Get_weight() const { return weight; }
     inline  double Get_Last_dw() const { return last_dw; }
 };
 

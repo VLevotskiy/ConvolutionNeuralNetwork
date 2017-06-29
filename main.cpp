@@ -3,25 +3,27 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-std::string layers[]={"Layer_type = FullConnected num_of_neurons = 275 activation_func = Sigmoid",
+std::string layers[]={  "Layer_type = Input num_of_neurons = 273",
+                        "Layer_type = FullConnected num_of_neurons = 275 activation_func = Sigmoid",
                         "Layer_type = FullConnected num_of_neurons = 21 activation_func = SoftMax"};
                    //"Layer_type = Convolution activation_func = ReLU img_height = 29 img_width = 29 el_width = 3 el_height = 3 number_of_masks = 6",
                    //"Layer_type = Pooling activation_func = Linear img_height = 29 img_width = 29 el_width = 2 el_height = 2 number_of_masks = 6",
                    //"Layer_type = FullConnected num_of_neurons = 1 activation_func = Sigmoid"};
 
 void training(const std::string& path, NeuralNet& nn);
+void test_loading(NeuralNet& nn,NeuralNet& nn2, const std::string& path);
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    NeuralNet new_net(layers, 2,273);
+    NeuralNet new_net(layers, 3);
 
-    double mat[4][3] = {{0.0, 0.0, 0.0},
-                      {1.0, 0.0, 1.0},
-                      {0.0, 1.0, 1.0},
-                      {1.0, 1.0, 1.0}};
 
+    new_net.save_net("NN_description.txt", "NN_weights");
+    NeuralNet loaded("NN_description.txt", "NN_weights");
+
+    test_loading(new_net,loaded,"C:/Users/coder/Documents/build-ConvolutionNeuralNetwork-Desktop_Qt_5_5_1_MinGW_32bit-Release/release/");
     training("C:/Users/coder/Documents/build-ConvolutionNeuralNetwork-Desktop_Qt_5_5_1_MinGW_32bit-Release/release/",new_net);
 
     return a.exec();
@@ -92,15 +94,15 @@ void training(const std::string& path, NeuralNet& nn){
                 auto end = std::chrono::high_resolution_clock::now();
                 std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
 
-                nn.Get_last_layer();
+                //nn.Get_last_layer();
 
                 actual_value[j] = 1;
                 if (i < 180){
                     nn.back_propagation(actual_value);
                 }
                 else {
-                    std::cout << "symbol " << j << std::endl;
-                    nn.Get_last_layer();
+                    //std::cout << "symbol " << j << std::endl;
+                    //nn.Get_last_layer();
                 }
                 actual_value[j] = 0;
 
@@ -109,7 +111,7 @@ void training(const std::string& path, NeuralNet& nn){
     //}
 }
 
-void training2(){
+void training2(const std::string& path,NeuralNet& nn){
     std::vector<double> actual_value;
     for (size_t i = 0; i < 21; i++){
         actual_value.push_back(0);
@@ -193,7 +195,7 @@ void training2(){
                 auto end = std::chrono::high_resolution_clock::now();
                 std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
 
-                nn.Get_last_layer();
+                //nn.Get_last_layer();
 
                 actual_value[j] = 1;
                // if (i < 180){
@@ -232,4 +234,40 @@ void training2(){
         }
     }*/
 
+}
+
+void test_loading(NeuralNet& nn,NeuralNet& nn2, const std::string& path){
+     std::string new_path =path + "13_21/0/5.bmp";
+     std::vector<double> input_vector;
+     std::ifstream input(new_path, std::ios::binary);
+     if (!input.is_open()) throw std::runtime_error("Can't open file " + new_path);
+     input.seekg(1078);
+
+     char y;
+     int symbls_cntr = 0;
+     int img_width = 13;
+     int padding = img_width +(img_width*3)%4;
+     while (!input.eof())
+     {
+         input.get(y);
+         symbls_cntr++;
+         if (symbls_cntr < img_width){
+             input_vector.push_back(y /255.);
+         }
+         if (symbls_cntr == padding-1) symbls_cntr = 0;
+     }
+     input.close();
+
+
+     auto begin = std::chrono::high_resolution_clock::now();
+
+     nn.forward_propagation(input_vector);
+     nn2.forward_propagation(input_vector);
+
+     auto end = std::chrono::high_resolution_clock::now();
+     std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
+
+
+     nn.Get_last_layer();
+     nn2.Get_last_layer();
 }

@@ -10,9 +10,9 @@
 
 enum Layer_type{Input=0, FullConnected=1, Convolution=2, Pooling=3};
 enum Activation_funcs {Sigmoid=0, ReLU, SoftMax, Linear};
-const int NUM_OF_LAYERS_TYPES = 3;
+const int NUM_OF_LAYERS_TYPES = 4;
 const int NUM_OF_ACTIVATION_FUNCS = 4;
-const std::string list_of_layers_types[NUM_OF_LAYERS_TYPES] = {"FullConnected", "Convolution", "Pooling"};
+const std::string list_of_layers_types[NUM_OF_LAYERS_TYPES] = {"FullConnected", "Convolution", "Pooling", "Input"};
 const std::string list_of_activation_funcs[NUM_OF_ACTIVATION_FUNCS] = {"Sigmoid", "ReLU", "SoftMax", "Linear"};
 
 //Класс слоя. Хранит информацию о слое сети
@@ -38,6 +38,7 @@ public:
     std::vector<Neuron> &Get_neurons();
     std::shared_ptr<Layer> Get_Prev() const;
     Layer_type Get_type() const;
+    Activation_funcs Get_activation_func() const { return activation_func; }
     void Update_weights(const double training_rate,const double inert_coeff);
     void Activate_Layer();
 
