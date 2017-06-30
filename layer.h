@@ -35,7 +35,8 @@ public:
     Layer(unsigned int n, std::shared_ptr<Layer> prev, Activation_funcs Activation_function, Layer_type type_);
 
     unsigned int Size() const;
-    std::vector<Neuron> &Get_neurons();
+    //std::vector<Neuron> &Get_neurons();
+    std::shared_ptr<std::vector<Neuron>> Get_neurons();
     std::shared_ptr<Layer> Get_Prev() const;
     Layer_type Get_type() const;
     Activation_funcs Get_activation_func() const { return activation_func; }

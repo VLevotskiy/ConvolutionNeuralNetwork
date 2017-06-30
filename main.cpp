@@ -11,20 +11,25 @@ std::string layers[]={  "Layer_type = Input num_of_neurons = 273",
                    //"Layer_type = FullConnected num_of_neurons = 1 activation_func = Sigmoid"};
 
 void training(const std::string& path, NeuralNet& nn);
+void training2(const std::string& path, NeuralNet& nn);
 void test_loading(NeuralNet& nn,NeuralNet& nn2, const std::string& path);
+void test_net(const std::string& path,NeuralNet& nn);
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    NeuralNet new_net(layers, 3);
+    //NeuralNet new_net(layers, 3);
 
 
-    new_net.save_net("NN_description.txt", "NN_weights");
-    NeuralNet loaded("NN_description.txt", "NN_weights");
-
-    test_loading(new_net,loaded,"C:/Users/coder/Documents/build-ConvolutionNeuralNetwork-Desktop_Qt_5_5_1_MinGW_32bit-Release/release/");
-    training("C:/Users/coder/Documents/build-ConvolutionNeuralNetwork-Desktop_Qt_5_5_1_MinGW_32bit-Release/release/",new_net);
+    NeuralNet loaded("NN_500description.txt", "NN_500weights");
+    //loaded.save_net("test_struct.txt","test_weight.txt");
+    test_net("C:/Users/coder/Documents/build-OracleVideo2-Desktop_Qt_5_5_1_MinGW_32bit-Release/Symbols/13_21_NN/",loaded);
+    //test_loading(new_net,loaded,"C:/Users/coder/Documents/build-ConvolutionNeuralNetwork-Desktop_Qt_5_5_1_MinGW_32bit-Release/release/");
+    //training2("C:/Users/coder/Documents/build-ConvolutionNeuralNetwork-Desktop_Qt_5_5_1_MinGW_32bit-Release/release/",new_net);
+    //training("C:/Users/coder/Documents/build-OracleVideo2-Desktop_Qt_5_5_1_MinGW_32bit-Release/Symbols/13_21_NN/",new_net);
+    //new_net.save_net("NN_500description.txt", "NN_500weights");
+    std::cout << "ENDED!";
 
     return a.exec();
 }
@@ -37,10 +42,10 @@ void training(const std::string& path, NeuralNet& nn){
 
     //for (int k =0; k < 10; k++){
         int i = 1;
-        for (;i<200;i++){
+        for (;i<500;i++){
             for (int j =0;j < 21; j++){
 
-                std::string new_path =path + "13_21/";
+                std::string new_path =path;
                 //std::string new_path =path + "7_13/";
                 switch(j){
                 case 0:{new_path.append("0/"); break;}
@@ -70,7 +75,7 @@ void training(const std::string& path, NeuralNet& nn){
                 //std::cout << new_path << std::endl;
                 std::vector<double> input_vector;
                 std::ifstream input(new_path, std::ios::binary);
-                if (!input.is_open()) throw std::runtime_error("Can't open file " + new_path);
+                if (!input.is_open()) continue;//throw std::runtime_error("Can't open file " + new_path);
                 input.seekg(1078);
 
                 char y;
@@ -97,12 +102,13 @@ void training(const std::string& path, NeuralNet& nn){
                 //nn.Get_last_layer();
 
                 actual_value[j] = 1;
-                if (i < 180){
+                if (i < 495){
                     nn.back_propagation(actual_value);
                 }
                 else {
-                    //std::cout << "symbol " << j << std::endl;
-                    //nn.Get_last_layer();
+
+                    std::cout << "symbol " << j << std::endl;
+                    nn.Get_last_layer();
                 }
                 actual_value[j] = 0;
 
@@ -141,7 +147,7 @@ void training2(const std::string& path,NeuralNet& nn){
         for (;i<500;i++){
             for (int j =0;j < 21; j++){
 
-                std::string new_path =path + "13_21/";
+                std::string new_path =path ;
                 //std::string new_path =path + "7_13/";
                 switch(j){
                 case 0:{new_path.append("0/"); break;}
@@ -171,7 +177,7 @@ void training2(const std::string& path,NeuralNet& nn){
                 //std::cout << new_path << std::endl;
                 std::vector<double> input_vector;
                 std::ifstream input(new_path, std::ios::binary);
-                if (!input.is_open()) throw std::runtime_error("Can't open file " + new_path);
+                if (!input.is_open()) {std::cout << ("Can't open file " + new_path) << std::endl; continue;}
                 input.seekg(1078);
 
                 char y;
@@ -188,24 +194,24 @@ void training2(const std::string& path,NeuralNet& nn){
                     if (symbls_cntr == padding-1) symbls_cntr = 0;
                 }
                 input.close();
-                auto begin = std::chrono::high_resolution_clock::now();
+                //auto begin = std::chrono::high_resolution_clock::now();
 
                 nn.forward_propagation(input_vector);
 
-                auto end = std::chrono::high_resolution_clock::now();
-                std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
+                //auto end = std::chrono::high_resolution_clock::now();
+                //std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
 
                 //nn.Get_last_layer();
 
                 actual_value[j] = 1;
-               // if (i < 180){
+                //if (i < 180){
                     nn.back_propagation(actual_value);
-                /*}
-                else {
-                    std::cout << "symbol " << j << std::endl;
-                    nn.Get_last_layer();
-                }
-                actual_value[j] = 0;*/
+                //}
+                //else {
+                //    std::cout << "symbol " << j << std::endl;
+                //    nn.Get_last_layer();
+                //}
+                actual_value[j] = 0;
 
             }
         }
@@ -259,15 +265,105 @@ void test_loading(NeuralNet& nn,NeuralNet& nn2, const std::string& path){
      input.close();
 
 
-     auto begin = std::chrono::high_resolution_clock::now();
+     //auto begin = std::chrono::high_resolution_clock::now();
 
      nn.forward_propagation(input_vector);
      nn2.forward_propagation(input_vector);
 
-     auto end = std::chrono::high_resolution_clock::now();
-     std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
+     //auto end = std::chrono::high_resolution_clock::now();
+     //std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
 
 
      nn.Get_last_layer();
      nn2.Get_last_layer();
+}
+
+void test_net(const std::string& path,NeuralNet& nn){
+    std::vector<double> actual_value;
+    unsigned int errors_cntr =0;
+    unsigned int true_cntr = 0;
+    for (size_t i = 0; i < 21; i++){
+        actual_value.push_back(0);
+    }
+
+    //for (int k =0; k < 10; k++){
+        int i = 1;
+        for (;i<2000;i++){
+            for (int j =0;j < 21; j++){
+
+                std::string new_path =path;
+                //std::string new_path =path + "7_13/";
+                switch(j){
+                case 0:{new_path.append("0/"); break;}
+                case 1:{new_path.append("1/"); break;}
+                case 2:{new_path.append("2/"); break;}
+                case 3:{new_path.append("3/"); break;}
+                case 4:{new_path.append("4/"); break;}
+                case 5:{new_path.append("5/"); break;}
+                case 6:{new_path.append("6/"); break;}
+                case 7:{new_path.append("7/"); break;}
+                case 8:{new_path.append("8/"); break;}
+                case 9:{new_path.append("9/"); break;}
+                case 10:{new_path.append("A/"); break;}
+                case 11:{new_path.append("B/"); break;}
+                case 12:{new_path.append("C/"); break;}
+                case 13:{new_path.append("E/"); break;}
+                case 14:{new_path.append("H/"); break;}
+                case 15:{new_path.append("K/"); break;}
+                case 16:{new_path.append("M/"); break;}
+                case 17:{new_path.append("P/"); break;}
+                case 18:{new_path.append("T/"); break;}
+                case 19:{new_path.append("X/"); break;}
+                case 20:{new_path.append("Y/"); break;}
+                default:{continue;break;}
+                }
+                new_path += std::to_string(i)+".bmp";
+                //std::cout << new_path << std::endl;
+                std::vector<double> input_vector;
+                std::ifstream input(new_path, std::ios::binary);
+                if (!input.is_open()) continue;//throw std::runtime_error("Can't open file " + new_path);
+                input.seekg(1078);
+
+                char y;
+                int symbls_cntr = 0;
+                int img_width = 13;
+                int padding = img_width +(img_width*3)%4;
+                while (!input.eof())
+                {
+                    input.get(y);
+                    symbls_cntr++;
+                    if (symbls_cntr < img_width){
+                        input_vector.push_back(y /255.);
+                    }
+                    if (symbls_cntr == padding-1) symbls_cntr = 0;
+                }
+                //input.close();
+                //auto begin = std::chrono::high_resolution_clock::now();
+
+                nn.forward_propagation(input_vector);
+
+                //auto end = std::chrono::high_resolution_clock::now();
+                //std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count()<<"ms"<< std::endl;
+
+                //nn.Get_last_layer();
+
+                //actual_value[j] = 1;
+                double max = 0;
+                int max_pos = 0;
+                auto out_val = nn.Get_last_layer();
+                for (int i =0;i < out_val->size(); i++) {
+                    if (max < out_val->at(j)) { max_pos = j; max = out_val->at(j);}
+                }
+
+                if (max_pos != j) {
+                    errors_cntr++;
+                }
+                else{
+                    true_cntr++;
+                }
+                //actual_value[j] = 0;
+
+            }
+        }
+        std::cout << "errors_cntr = " <<  errors_cntr << "\t true_cntr = " << true_cntr << std::endl;
 }

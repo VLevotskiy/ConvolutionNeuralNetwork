@@ -169,7 +169,7 @@ void NeuralNet::forward_propagation(std::vector< double>& input_data) {
 bool NeuralNet::back_propagation(const std::vector< double>& actual_values) {
     //Рассчет ошибки
     double Error = calculate_error(actual_values);
-    std::cout << Error << std::endl;
+    std::cout <<"Error = " << Error << std::endl;
     if (Error < training_threshold) {
         return true;
     }
@@ -189,11 +189,11 @@ bool NeuralNet::back_propagation(const std::vector< double>& actual_values) {
 }
 
 double NeuralNet::calculate_error(const std::vector< double>& actual_values) {
-    if (actual_values.size() != layers[num_of_layers-1]->Size()/*-1*/) throw std::runtime_error("Size of actual values < size of last layer");
+    if (actual_values.size() != layers[num_of_layers-1]->Size()-1) throw std::runtime_error("Size of actual values < size of last layer");
     double sum = 0;
-    std::vector<Neuron> last_layer_neurons = layers[num_of_layers-1]->Get_neurons();
+    auto last_layer_neurons = layers[num_of_layers-1]->Get_neurons();
     for (size_t i = 0; i <actual_values.size(); i++) {
-        double temp = last_layer_neurons[i].Get_value() - actual_values[i];
+        double temp = last_layer_neurons->at(i).Get_value() - actual_values[i];
         sum += temp * temp;
     }
     return 0.5 * sum;
@@ -206,13 +206,14 @@ void NeuralNet::update_weights(){
      }
  }
 
-void NeuralNet::Get_last_layer() {
-    std::vector<Neuron> neuron = layers[num_of_layers-1]->Get_neurons();
-    for (size_t i = 0; i <  layers[num_of_layers-1]->Size(); i++) {
-        std::cout << i << "\t" << neuron[i].Get_value() << std::endl;
+std::shared_ptr<std::vector<double>> NeuralNet::Get_last_layer() {
+    auto neuron = layers[num_of_layers-1]->Get_neurons();
+    std::shared_ptr<std::vector<double>> out(new std::vector<double>);
+    for (size_t i = 0; i <  layers[num_of_layers-1]->Size()-1; i++)
+    {
+        out->push_back(neuron->at(i).Get_value());
     }
-
-
+    return out;
 }
 
 void NeuralNet::save_net(const std::string &nn_description_path, const std::string& nn_weights_path){
@@ -255,11 +256,11 @@ void NeuralNet::save_net(const std::string &nn_description_path, const std::stri
     std::ofstream nn_weights(descriptor_path,std::ios::binary);
     for (int i = 1; i < num_of_layers;i++){
         std::shared_ptr<Layer> layer = layers[i];
-        std::vector<Neuron> neurons = layer->Get_neurons();
+        auto neurons = layer->Get_neurons();
         for (int i =0; i < layer->Size(); i++) {
-            std::vector<Connection> neuron_weights = neurons[i].Get_connections();
-            for (int j = 0; j < neuron_weights.size(); j++) {
-                nn_weights << neuron_weights[j].Get_weight() << "\n";
+            auto neuron_weights = neurons->at(i).Get_connections();
+            for (int j = 0; j < neuron_weights->size(); j++) {
+                nn_weights << neuron_weights->at(j).Get_weight() << "\n";
             }
         }
     }
@@ -272,13 +273,13 @@ void NeuralNet::load_weights(const std::string& path){
     std::ofstream test("test.txt");
     for (int i = 1; i < num_of_layers;i++){
         std::shared_ptr<Layer> layer = layers[i];
-        std::vector<Neuron> neurons = layer->Get_neurons();
+        auto neurons = layer->Get_neurons();
         for (int i =0; i < layer->Size(); i++) {
-            std::vector<Connection> neuron_weights = neurons[i].Get_connections();
-            for (int j = 0; j < neuron_weights.size(); j++) {
+            auto neuron_weights = neurons->at(i).Get_connections();
+            for (int j = 0; j < neuron_weights->size(); j++) {
                 nn_weights >> readed;
                 test << readed << "\n";
-                neurons[i].Update_weight(j,readed,0);
+                neuron_weights->operator[](j).Set_weight(readed);
             }
         }
     }
