@@ -13,12 +13,12 @@ SOURCES += main.cpp \
     neuron.cpp \
     layer.cpp \
     connection.cpp \
-    neuralnet.cpp
+    neuralnet.cpp \
+    comm_funcs.cpp
 
 HEADERS += \
-    convolutionnn.h \
-    random_num.h \
     neuron.h \
     layer.h \
     connection.h \
-    neuralnet.h
+    neuralnet.h \
+    comm_funcs.h

@@ -2,4 +2,12 @@
 *.autosave
 neuron__.h
 neuron__.cpp
+<<<<<<< HEAD
 neuron__.cpp
+=======
+convolutionnn.h
+ConvolutionNeuralNetwork.pro.user
+asd
+>>>>>>> realisation
+neuron__.cpp
+random_num.h
