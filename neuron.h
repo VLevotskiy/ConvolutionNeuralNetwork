@@ -20,6 +20,7 @@ public:
     double Get_delta() const { return delta; }
     //std::vector<Connection>& Get_connections() { return connections;}
     std::shared_ptr<std::vector<Connection> > Get_connections() { return std::make_shared<std::vector<Connection> >(connections);}
+     std::vector<Connection>* Get_connections_p() { return &connections;}
     void Update_weight(unsigned int num_of_neuron, double weight, double dw) {
         if (num_of_neuron >= connections.size())  throw std::runtime_error("Neuron::Update_weight. Neuron out of range");
         connections[num_of_neuron].Set_Last_dw(dw);

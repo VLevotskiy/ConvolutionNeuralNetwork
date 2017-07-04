@@ -6,6 +6,10 @@
 #include <memory>
 #include "comm_funcs.h"
 #include "layer.h"
+#include "fullconnected_layer.h"
+#include "convolution_layer.h"
+#include "pooling_layer.h"
+#include "input_layer.h"
 
 class NeuralNet {
 private:

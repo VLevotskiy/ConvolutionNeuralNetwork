@@ -71,12 +71,14 @@ void Layer::Activate_Layer() {
     //}
     switch (activation_func){
     case Sigmoid: {
+#pragma omp parallel for
         for (int i = 0; i < layer_size_; i++){
             neurons[i].Set_value(SIGMOID_f(neurons[i].Get_value()));
         }
         break;
     }
     case ReLU: {
+        #pragma omp parallel for
         for (int i = 0; i < layer_size_; i++){
             neurons[i].Set_value(ReLU_f(neurons[i].Get_value()));
         }
@@ -85,12 +87,14 @@ void Layer::Activate_Layer() {
     case SoftMax:{
         double sum = 0;
         std::vector<double> exp_values;
+        #pragma omp parallel for
         for (int i = 0; i < layer_size_; i++){
             exp_values.push_back( exp(neurons[i].Get_value()) );
             sum +=exp_values[i];
         }
 
         if (sum==0) throw std::runtime_error("Softmax. Exponentioal sums = 0");
+        #pragma omp parallel for
         for (int i = 0; i < layer_size_; i++){
             neurons[i].Set_value( exp_values[i]/sum);
         }
@@ -100,157 +104,3 @@ void Layer::Activate_Layer() {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////Полносвязный слой//////////////////////////////////////////////////////
-// соединяем  нейроны слоя связями с случайными весовыми коэффициентами с нейронами предыдущего слоя
-FullConnected_Layer::FullConnected_Layer(unsigned int n, std::shared_ptr<Layer> prev, Activation_funcs Activation_function) : Layer(n,prev, Activation_function,FullConnected) {
-    if (!prev){ throw std::runtime_error("FullConnected layer Null pointer for prev layer");}
-    layer_size = layer_size+1;
-    neurons.push_back(Neuron());
-    neurons.at(layer_size-1).Set_value(( double)1.0);
-    for (int i =0; i  < layer_size-1; i++){
-         double* weights = new  double[prev_layer->Size()];
-        gen_array(-0.2, 0.2, prev_layer->Size(), weights);
-        for (int j = 0; j < prev_layer->Size(); j++){
-            neurons[i].Add_Connection(j,weights[j]);
-        }
-        delete [] weights;
-    }
-}
-
-void FullConnected_Layer::Calculate(){
-    if (!prev_layer) return;
-    auto prevNeurons = prev_layer->Get_neurons();
-    for (size_t i = 0; i < layer_size-1; i++) {
-         double tmp = 0;
-        auto wgths_i = neurons[i].Get_connections();
-        if (wgths_i->size() != prevNeurons->size()) {throw std::runtime_error("FullConnection_Layer::Calculate. wgths"); }
-        for (size_t j = 0; j < prev_layer->Size(); j++) {
-            tmp += wgths_i->at(j).Get_weight() * prevNeurons->at(j).Get_value();
-        }
-        neurons[i].Set_value(tmp);
-    }
-
-    Activate_Layer();
-}
-
-//порядок слоёв в сети prev ->current->next
-void FullConnected_Layer::Back_Propagation(std::shared_ptr<Layer>& Next_layer){
-    auto next_neurons = Next_layer->Get_neurons();
-    std::vector< double> sums(neurons.size());
-
-    std::fill(sums.begin(),sums.end(),0);
-    for (size_t j = 0; j < neurons.size(); j++) {
-        for (size_t k = 0; k < next_neurons->size()-1; ++k){
-            auto current_next_con = next_neurons->at(k).Get_connections();
-            sums[j] += current_next_con->at(j).Get_weight() * next_neurons->at(k).Get_delta();
-        }
-        neurons[j].Set_delta(sums[j] * D_activation_func(neurons[j].Get_value()));
-    }
-}
-
-void FullConnected_Layer::Back_Propagation(const std::vector< double>& actual_values){
-    if (actual_values.size() != layer_size-1) throw std::runtime_error("Size of actual values < size of last layer");
-    for (size_t j = 0; j < layer_size; j++) {
-        neurons[j].Set_delta( (actual_values[j] - neurons[j].Get_value()) * D_activation_func(neurons[j].Get_value()) );
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////Сверточный слой//////////////////////////////////////////////////////
-Convolution_Layer::Convolution_Layer(std::shared_ptr<Layer> prev,Activation_funcs Activation_function,\
-                                     uint16_t input_height,uint16_t input_width,\
-                                     uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks) : Layer(input_width * input_height * num_of_masks,prev, Activation_function,Convolution) {
-
-     double** weights = new  double*[num_of_masks];
-    mask_size = input_width * input_height;
-    //layer_size = mask_size * num_of_masks;
-    for (int i = 0; i < num_of_masks;i++){
-        weights[i] = new  double[mask_size];
-        gen_array(0.0001, 0.2, mask_size, &weights[i][0]);
-    }
-
-    int start_w_offset = (int)(el_width * 0.5);
-    int start_h_offset = (int)(el_height * 0.5);
-
-    for (int i =0; i <  input_height; i++){           //cтроки
-        int temp_h = i - start_h_offset;
-        for(int j = 0; j  < input_width; j++) {       //столбцы
-            int temp_w = j - start_w_offset;
-            for (int m = 0; m <  el_height; m++){   //строки маски
-                for (int n = 0; n < el_width; n++){  //столбцы маски
-                    int h_pos = temp_h + m;
-                    int w_pos = temp_w + n;
-                    if (h_pos < 0) continue;//h_pos = m;
-                    if (w_pos < 0) continue;//w_pos = n;
-                    if (h_pos >= input_height)continue;
-                    if (w_pos >= input_width) continue;
-
-                    //out[i * input_height + j] += input[h_pos * input_height + w_pos] * mask[m * el_height + n];
-                    for (int l = 0; l < num_of_masks; l++){
-                        neurons[i * input_height + j + l*mask_size].Add_Connection(h_pos * input_height + w_pos , weights[l][m * el_height + n]);
-                    }
-                }
-            }
-        }
-    }
-
-    for (int i =0; i < num_of_masks; i++){
-        delete [] weights[i];
-    }
-    delete [] weights;
-}
-
-void Convolution_Layer::Calculate(){
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////Объединяющий слой/////////////////////////////////////////////////////
-Pooling_Layer::Pooling_Layer(std::shared_ptr<Layer> prev, Activation_funcs Activation_function, \
-                             uint16_t input_width, uint16_t input_height, uint8_t step_size, \
-                             uint8_t el_width, uint8_t  el_height, uint8_t num_of_masks) : Layer(0,prev, Activation_function, Pooling) {
-    unsigned int new_w = input_width/el_width, new_h = input_height/el_height;
-    if (input_width % el_width != 0) new_w +=1;
-    if (input_height % el_height != 0) new_h +=1;
-    mask_size =  new_w * new_h;
-    layer_size = mask_size *num_of_masks;
-
-    Create_neurons();
-
-    for (int mask_num = 0; mask_num < num_of_masks; mask_num++) {
-        for (int i =0, out_i =0; i < input_height; i+=step_size,out_i++) {
-            for (int j = 0, out_j = 0; j < input_width; j+=step_size,out_j++){
-                for (int m = 0; m < el_height;m++){
-                    for (int n = 0; n < el_width;n++) {
-                        const int  pos = (i+m)*input_width + j + n;
-                        neurons[out_i * new_h+out_j + mask_size*mask_num].Add_Connection(pos,1);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void Pooling_Layer::Calculate() {
-
-}
-
-Input_Layer::Input_Layer(unsigned int layer_size_) :Layer() {
-    type = Input;
-    layer_size = layer_size_;
-    Create_neurons();
-}
-
-void Input_Layer::Fill_layer(std::vector< double>& data) {
-    if (layer_size <= 0) throw std::runtime_error("Input_layer::Fill_layer. Layer is empty");
-    if (layer_size < data.size()) throw std::runtime_error("Input_layer::Fill_layer. Input_vector large then layer_size");
-
-    for (int i = 0; i < data.size();i++) {
-        neurons[i].Set_value(data[i]);
-    }
-}
-
-void Input_Layer::Calculate(){
-    return;
-}

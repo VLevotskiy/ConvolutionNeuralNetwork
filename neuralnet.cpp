@@ -201,9 +201,10 @@ double NeuralNet::calculate_error(const std::vector< double>& actual_values) {
 }
 
 void NeuralNet::update_weights(){
-     for (int i = num_of_layers-1; i >= 0; --i) {
-         layers[i]->Update_weights(training_speed, inertia_coeff);
-     }
+    #pragma omp parallel for
+    for (int i = num_of_layers-1; i >= 0; --i) {
+        layers[i]->Update_weights(training_speed, inertia_coeff);
+    }
  }
 
 std::shared_ptr<std::vector<double>> NeuralNet::Get_last_layer() {
@@ -224,7 +225,7 @@ void NeuralNet::save_net(const std::string &nn_description_path, const std::stri
         std::shared_ptr<Layer> layer = layers[i];
         switch (layer->Get_type()){
         case FullConnected: {
-            nn_description << "Layer_type " << "FullConnected " << "num_of_neurons " << (layer->Size())
+            nn_description << "Layer_type " << "FullConnected " << "num_of_neurons " << (layer->Size()-1)
                            << " activation_func ";
             switch(layer->Get_activation_func()){
             case Sigmoid: nn_description << "Sigmoid";break;
@@ -271,15 +272,16 @@ void NeuralNet::load_weights(const std::string& path){
     double readed;
     std::ifstream nn_weights(path);
     std::ofstream test("test.txt");
-    for (int i = 1; i < num_of_layers;i++){
+    for (size_t i = 1; i < num_of_layers;i++){
         std::shared_ptr<Layer> layer = layers[i];
-        auto neurons = layer->Get_neurons();
-        for (int i =0; i < layer->Size(); i++) {
-            auto neuron_weights = neurons->at(i).Get_connections();
+        auto neurons = layer->Get_neurons_p();
+        for (size_t i =0; i < layer->Size(); i++) {
+            auto neuron_weights = neurons->at(i).Get_connections_p();
             for (int j = 0; j < neuron_weights->size(); j++) {
                 nn_weights >> readed;
                 test << readed << "\n";
-                neuron_weights->operator[](j).Set_weight(readed);
+                //neurons->operator[](i).Update_weight(j, readed,0);
+                (*neuron_weights)[j].Set_weight(readed);
             }
         }
     }
